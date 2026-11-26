@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수출하는 산업은 일자리를 얼마나 만들까? | 2023 산업연관표 분석</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="bar">
+    <div><h1>수출하는 산업은 일자리를 얼마나 만들까?</h1>
+    <p>2023년 산업연관표(연장표) 분석 · 대외의존도와 노동구조</p></div>
+    <button id="present" class="btn ghost light" aria-pressed="false">발표 모드</button>
+  </div>
+  <nav id="groups" aria-label="대메뉴"></nav>
+</header>
+<div id="subnav" role="tablist" aria-label="세부 메뉴"></div>
+
+<main>
+<section id="home" class="pane">
+  <h2>핵심 요약</h2>
+  <div class="cards" id="kpis"></div>
+  <div class="lead" id="findings"></div>
+  <h2>이 앱을 사용하는 순서</h2>
+  <ol class="steps">
+    <li><b>분석</b>에서 수출률·수입률과 일자리 계수의 관계를 확인합니다.</li>
+    <li><b>시뮬레이션</b>에서 같은 금액이 소비·투자·수출에 쓰일 때 고용 차이를 비교하고, 380개 업종에 수요 증가를 넣어 파급효과를 계산합니다.</li>
+    <li><b>자료</b>에서 원자료 표를 직접 확인하고, 탐구 질문과 해석상 주의점으로 보고서를 마무리합니다.</li>
+  </ol>
+  <p class="note">용어: 수출률 = 수출액/총산출, 수입률 = 수입액/총공급, 취업유발계수 = 최종수요 10억원이 전 산업에 만드는 전업환산 취업자 수(명).</p>
+</section>
+
+<section id="scatter" class="pane" hidden>
+  <h2>수출률과 일자리 유발 효과</h2>
+  <div class="controls">
+    <label>가로축 <select id="sx"><option value="ex">수출률 (수출액/총산출)</option><option value="im">수입률 (수입액/총공급)</option></select></label>
+    <label>세로축 <select id="sy"><option value="empI">취업유발계수</option><option value="hireI">고용유발계수</option><option value="emp">취업계수</option></select></label>
+  </div>
+  <div class="chart tall"><canvas id="cScatter"></canvas></div>
+  <div class="guide" id="g-scatter"></div>
+</section>
+
+<section id="trade" class="pane" hidden>
+  <h2>수출·수입 규모와 대외거래 비중</h2>
+  <div class="chart"><canvas id="cTrade"></canvas></div><div class="guide" id="g-trade"></div>
+  <h2>부문별 수출률·수입률</h2>
+  <div class="controls">
+    <label>지표 <select id="tm"><option value="ex">수출률</option><option value="im">수입률</option></select></label>
+    <label>연도 <select id="ty"></select></label>
+  </div>
+  <div class="chart"><canvas id="cRate"></canvas></div><div class="guide" id="g-rate"></div>
+  <h2>2023년 수출품·수입품 구성</h2>
+  <div class="chart"><canvas id="cComp"></canvas></div><div class="guide" id="g-comp"></div>
+</section>
+
+<section id="labor" class="pane" hidden>
+  <h2>부문별 취업계수와 고용계수 (2023)</h2>
+  <div class="chart tall"><canvas id="cCoef"></canvas></div><div class="guide" id="g-coef"></div>
+  <h2>최종수요 항목별 유발계수</h2>
+  <div class="controls"><label>지표 <select id="fm"><option value="empI">취업유발계수</option><option value="hireI">고용유발계수</option></select></label></div>
+  <div class="chart"><canvas id="cFD"></canvas></div><div class="guide" id="g-fd"></div>
+  <h2>2023 취업유발비중 vs 고용유발비중</h2>
+  <div class="chart short"><canvas id="cShare"></canvas></div><div class="guide" id="g-share"></div>
+</section>
+
+<section id="sim" class="pane" hidden>
+  <h2>같은 금액이 소비·투자·수출에 쓰이면?</h2>
+  <div class="controls"><label>최종수요 금액 <input id="amt" type="number" min="0" step="100" value="1000"> 십억원</label><span id="amtTxt"></span></div>
+  <div class="scroll"><table id="simTable"></table></div>
+  <div class="chart short"><canvas id="cSim"></canvas></div><div class="guide" id="g-sim"></div>
+</section>
+
+<section id="shock" class="pane" hidden>
+  <h2>국내 생산물 최종수요 증가 시뮬레이션 (380부문)</h2>
+  <p>예시를 누르면 시나리오가 바로 계산됩니다. 직접 입력하려면 아래에서 업종과 금액을 고르세요.</p>
+  <div class="presets" id="presets"></div>
+  <div class="controls"><button id="sload" class="btn">기본부문 불러오기</button><span id="sstat" class="note">예시를 누르면 자동으로 불러옵니다.</span></div>
+  <pre id="verify" class="verify">아직 자료를 불러오지 않았습니다.</pre>
+  <div class="controls">
+    <label>업종 검색 <input id="sq" type="search" placeholder="예: 집적회로"></label>
+    <label>업종 <select id="ss"></select></label>
+    <label>증가액(백만원) <input id="sa" type="number" min="0" step="1000" value="1000000"></label>
+    <button id="sadd" class="btn">시나리오에 추가</button><button id="sclr" class="btn ghost">비우기</button>
+  </div>
+  <p class="note">1,000백만원 = 10억원. 여러 업종의 증가액은 합산되며 양의 수요 증가만 지원합니다.</p>
+  <ul id="slist" class="q"><li>시나리오를 추가하세요.</li></ul>
+  <div id="sres"></div>
+</section>
+
+<section id="exp" class="pane" hidden>
+  <h2>기본부문 원자료 탐색 (2023 · 생산자가격 · 12개 시트)</h2>
+  <div class="controls">
+    <label>시트 <select id="xs"></select></label>
+    <label>행 검색 <input id="xq" type="search" placeholder="예: 반도체"></label>
+    <label>행 선택 <select id="xr"></select></label>
+    <label>열 검색 <input id="xc" type="search" placeholder="예: 자동차"></label>
+    <label class="chk"><input id="xnz" type="checkbox" checked> 0 제외</label>
+  </div>
+  <p class="note" id="xinfo">시트를 고르면 자료를 불러옵니다.</p>
+  <div class="scroll"><table id="xtable"></table></div>
+  <p class="note">금액표의 일반 데이터 단위는 백만원입니다. 합계·분석지표 행은 행 이름을 먼저 확인하세요.</p>
+</section>
+
+<section id="ask" class="pane" hidden>
+  <h2>탐구 질문</h2>
+  <ol class="q">
+    <li>수출률이 높은 부문(조립가공·기초소재)의 취업유발계수가 낮은 이유는 무엇일까요? 자본집약도와 부가가치율로 설명해 보세요.</li>
+    <li>수출은 일자리를 적게 만드는데도 왜 정책에서 중요하게 다룰까요? 부가가치와 수입유발 지표를 함께 보세요.</li>
+    <li>광산품은 수입률이 97.6%입니다. 수입의존도가 높은 산업은 외부 가격 충격에 어떻게 영향받을까요? (2023년 수입 원자재 가격 하락 사례)</li>
+    <li>취업유발계수와 고용유발계수의 차이는 무엇일까요? 농림수산품에서 두 값이 크게 벌어지는 이유를 찾아보세요.</li>
+    <li>서비스 부문 수출률은 낮지만 수출품 구성의 18.5%를 차지합니다. 앞으로 서비스 수출이 늘면 노동구조는 어떻게 바뀔까요?</li>
+  </ol>
+  <h2>해석할 때 주의할 점</h2>
+  <ul class="q">
+    <li>모든 금액은 당해년 가격 기준이라 시계열 비교 시 물가 효과가 섞입니다. 취업·고용 관련 계수도 해석에 유의하세요.</li>
+    <li>수치는 반올림되어 상위 부문과 하위 부문의 합이 맞지 않을 수 있습니다.</li>
+    <li>2023년 연장표는 2020년 실측표를 기준으로 간접 추계한 값입니다.</li>
+    <li>상관관계는 인과관계가 아닙니다. 부문 12개의 분포일 뿐 통계적 검정은 아닙니다.</li>
+    <li>380부문 시뮬레이션은 선형(투입산출) 모형이므로 가격·공급 제약 변화는 반영하지 않습니다.</li>
+  </ol>
+  <p class="note">출처: 한국은행, 「2023년 산업연관표(연장표)」, 2025.9.24. 세부 통계는 ECOS(ecos.bok.or.kr).</p>
+</section>
+</main>
+<footer class="foot">자료: 한국은행 산업연관표 · 발표 모드에서는 ← → 키로 화면을 넘기고 Esc로 종료합니다.</footer>
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script src="explorer.js"></script>
+</body>
+</html>
